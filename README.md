@@ -14,6 +14,8 @@ The used sflow library also parses several Host s-flow samples but this is untes
 
 Generally if flowbeat does not show the samples you want, the sflow library is probably lacking the parser support for them.
 
+WARNING: Please be aware that the exported data format will change in the future!
+
 ## Documentation
 
 Set the correct Listen port in flowbeat.yml and start sending it sflow packets.
