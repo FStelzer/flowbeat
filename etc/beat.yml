@@ -1,0 +1,6 @@
+################### Flowbeat Configuration Example #########################
+
+############################# Input ############################################
+input:
+  # Which UDP Port to listen for samples on
+  listen: 6343
