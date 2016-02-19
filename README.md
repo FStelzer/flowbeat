@@ -26,7 +26,9 @@ Then do
 
 "glide up"
 
-to install all dependencies.
+to install all dependencies and set 
+"export GO15VENDOREXPERIMENT=1" or use Go 1.6
+
 Then build Flowbeat by just running:
 
 "go build"
