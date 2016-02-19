@@ -16,6 +16,21 @@ Generally if flowbeat does not show the samples you want, the sflow library is p
 
 WARNING: Please be aware that the exported data format will change in the future!
 
+# Building
+Flowbeat uses Glide for dependency management. To install glide see:
+https://github.com/Masterminds/glide
+
+"go get github.com/Masterminds/glide" should work in most cases.
+
+Then do
+
+"glide up"
+
+to install all dependencies.
+Then build Flowbeat by just running:
+
+"go build"
+
 ## Documentation
 
 Set the correct Listen port in flowbeat.yml and start sending it sflow packets.
