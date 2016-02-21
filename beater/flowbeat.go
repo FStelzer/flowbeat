@@ -5,13 +5,13 @@ import (
 	"net"
 	"time"
 
-	"github.com/fstelzer/sflow"
-
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/cfgfile"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/publisher"
+
+	"github.com/fstelzer/sflow"
 )
 
 type Flowbeat struct {
@@ -91,28 +91,31 @@ func (fb *Flowbeat) Run(b *beat.Beat) error {
 		}
 
 		for _, sample := range dgram.Samples {
-			var sampleType string
+			event := common.MapStr{
+				"@timestamp": common.Time(time.Now()),
+			}
+
 			switch sample.SampleType() {
 			case sflow.TypeFlowSample:
-				sampleType = "flow"
+				event["type"] = "flow"
+				sample = sample.(*sflow.FlowSample)
 			case sflow.TypeCounterSample:
-				sampleType = "counter"
+				event["type"] = "counter"
+				sample = sample.(*sflow.CounterSample)
 			case sflow.TypeExpandedFlowSample:
-				sampleType = "extended_flow"
+				event["type"] = "extended_flow"
 			case sflow.TypeExpandedCounterSample:
-				sampleType = "extended_counter"
+				event["type"] = "extended_counter"
 			default:
-				sampleType = "unknown"
+				event["type"] = "unknown"
 			}
 
 			//TODO: Sanitize / Beautify / Convert some of the sample data here for easier analytics
-			event := common.MapStr{
-				"@timestamp": common.Time(time.Now()),
-				"type":       sampleType,
+			eventData := common.MapStr{
 				"sflowdata":  sample,
 			}
 
-			fb.events.PublishEvent(event)
+			fb.events.PublishEvent(common.MapStrUnion(event, eventData))
 		}
 	}
 
