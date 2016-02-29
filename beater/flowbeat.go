@@ -105,10 +105,17 @@ func (fb *Flowbeat) Run(b *beat.Beat) error {
 			switch sample.SampleType() {
 			case sflow.TypeFlowSample:
 				event["type"] = "flow"
-				sample = sample.(*sflow.FlowSample)
+				sample := sample.(*sflow.FlowSample)
+				event["sequenceNum"] = sample.SequenceNum
+				event["samplingRate"] = sample.SamplingRate
+				event["samplePool"] = sample.SamplePool
+				event["drops"] = sample.Drops
+				event["input"] = sample.Input
+				event["output"] = sample.Output
 			case sflow.TypeCounterSample:
 				event["type"] = "counter"
-				sample = sample.(*sflow.CounterSample)
+				sample := sample.(*sflow.CounterSample)
+				event["sequenceNum"] = sample.SequenceNum
 			case sflow.TypeExpandedFlowSample:
 				event["type"] = "extended_flow"
 			case sflow.TypeExpandedCounterSample:
@@ -117,12 +124,11 @@ func (fb *Flowbeat) Run(b *beat.Beat) error {
 				event["type"] = "unknown"
 			}
 
-			//TODO: Sanitize / Beautify / Convert some of the sample data here for easier analytics
-			eventData := common.MapStr{
-				"sflowdata": sample,
+			for _, record := range sample.GetRecords() {
+				event[record.RecordName()] = record
 			}
 
-			fb.events.PublishEvent(common.MapStrUnion(event, eventData))
+			fb.events.PublishEvent(event)
 		}
 	}
 
