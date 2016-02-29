@@ -67,6 +67,8 @@ func (fb *Flowbeat) Setup(b *beat.Beat) error {
 func (fb *Flowbeat) Run(b *beat.Beat) error {
 	var err error
 	packetbuffer := make([]byte, 65535)
+	reader := bytes.NewReader(packetbuffer)
+	decoder := sflow.NewDecoder(reader)
 
 	for {
 		select {
@@ -75,15 +77,15 @@ func (fb *Flowbeat) Run(b *beat.Beat) error {
 		default:
 		}
 
+		reader.Seek(0, 0) //Reset the reader on our buffer
+
 		// Listen for sflow datagrams
-		size, _, err := fb.conn.ReadFromUDP(packetbuffer)
+		size, addr, err := fb.conn.ReadFromUDP(packetbuffer)
 		logp.Debug("flowbeat", "Received UDP Packet with Size: %d", size)
 		if err != nil {
 			return err
 		}
 
-		reader := bytes.NewReader(packetbuffer)
-		decoder := sflow.NewDecoder(reader)
 		dgram, err := decoder.Decode()
 		if err != nil {
 			logp.Warn("Error decoding sflow packet: %s", err)
@@ -92,7 +94,12 @@ func (fb *Flowbeat) Run(b *beat.Beat) error {
 
 		for _, sample := range dgram.Samples {
 			event := common.MapStr{
-				"@timestamp": common.Time(time.Now()),
+				"@timestamp":     common.Time(time.Now()),
+				"datagramSource": addr.IP,
+				"agent":          dgram.IpAddress,
+				"subAgentId":     dgram.SubAgentId,
+				"sequenceNumber": dgram.SequenceNumber,
+				"uptime":         dgram.Uptime,
 			}
 
 			switch sample.SampleType() {
@@ -112,7 +119,7 @@ func (fb *Flowbeat) Run(b *beat.Beat) error {
 
 			//TODO: Sanitize / Beautify / Convert some of the sample data here for easier analytics
 			eventData := common.MapStr{
-				"sflowdata":  sample,
+				"sflowdata": sample,
 			}
 
 			fb.events.PublishEvent(common.MapStrUnion(event, eventData))
