@@ -14,8 +14,6 @@ The used sflow library also parses several Host s-flow samples but this is untes
 
 Generally if flowbeat does not show the samples you want, the sflow library is probably lacking the parser support for them.
 
-WARNING: Please be aware that the exported data format will change in the future!
-
 # Building
 Flowbeat uses Glide for dependency management. To install glide see:
 https://github.com/Masterminds/glide
@@ -36,6 +34,8 @@ Then build Flowbeat by just running:
 ## Documentation
 
 Set the correct Listen port in flowbeat.yml and start sending it sflow packets.
+
+An elasticsearch mapping is provided which sets all strings to not analyzed and adjust the IP Address fields
 
 TODO
 
