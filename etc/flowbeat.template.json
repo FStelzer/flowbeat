@@ -1,1 +1,40 @@
-TODO
+{
+  "template": "flowbeat-*",
+  "settings" : {
+    "number_of_shards" : 5,
+    "number_of_replicas" : 1,
+    "index" : {
+      "query" : { "default_field" : "agent" },
+      "store" : { "compress" : { "stored" : true, "tv": true } }
+    }
+  },
+  "mappings": {
+    "_default_": {
+      "_all": { "enabled": false },
+      "_source": { "compress": true },
+      "dynamic_templates": [
+        {
+          "ip_addresses": {
+            "match": ".*NextHop|SrcAddr|DstAddr",
+            "match_pattern": "regex",
+            "mapping": {
+              "type": "ip"
+            },
+            "match_mapping_type": "string"
+          }
+        },
+        {
+          "string_template" : {
+            "match" : "*",
+            "mapping": { "type": "string", "index": "not_analyzed" },
+            "match_mapping_type" : "string"
+          }
+        }
+      ],
+      "properties": {
+        "agent": { "type": "ip" },
+        "datagramSource": { "type": "ip" }
+      }
+    }
+  }
+}
